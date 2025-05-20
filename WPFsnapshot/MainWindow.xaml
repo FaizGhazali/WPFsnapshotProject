@@ -37,8 +37,18 @@
                 <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Column="0" Background="Azure">
-                <TextBlock Text="TreeList"/>
+            <Grid Grid.Column="0" >
+                <TreeView ItemsSource="{Binding Projects}" 
+                          Background="Azure">
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate ItemsSource="{Binding Contractors}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Name}" TextWrapping="Wrap" MaxWidth="100" FontWeight="Bold"/>
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+
+                </TreeView>
             </Grid>
             <Grid Grid.Column="1" Background="AntiqueWhite">
                 <StackPanel>
