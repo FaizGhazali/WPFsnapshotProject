@@ -53,6 +53,19 @@ namespace WPFsnapshot
                 OnPropertyChanged();
             }
         }
+        private Contractor _selectedContractor;
+        public Contractor SelectedContractor
+        {
+            get => _selectedContractor;
+            set
+            {
+                _selectedContractor = value;
+                //_projectUndoStack.Clear();
+                //_projectRedoStack.Clear();
+                //TakeSnapshot();
+                OnPropertyChanged();
+            }
+        }
 
         private int _undoCount;
         public int UndoCount
@@ -97,31 +110,44 @@ namespace WPFsnapshot
             var oriContractors = dbLink.GetAllRecords<Contractor>("Contractor");
 
             Projects = new ObservableCollection<Project>(
-                 oriProjects.Select(project =>
-                 {
-                     // Get contractors linked to this project
-                     var linkedContractors = oriContractors
-                         .Where(c => c.ProjectGuid == project.Guid)
-                         .ToList();
+                oriProjects.Select(project =>
+                {
+                    // Get contractors linked to this project
+                    var linkedContractors = oriContractors
+                        .Where(c => c.ProjectGuid == project.Guid)
+                        .Select(c =>
+                        {
+                            c.ParentProject = project; // <-- Set the parent reference
+                            return c;
+                        })
+                        .ToList();
 
-                     // Create a new Project with Contractors collection
-                     return new Project
-                     {
-                         Guid = project.Guid,
-                         Name = project.Name,
-                         Contractors = new ObservableCollection<Contractor>(linkedContractors)
-                     };
-                 })
-             );
+                    // Create a new Project with Contractors collection
+                    return new Project
+                    {
+                        Guid = project.Guid,
+                        Name = project.Name,
+                        Contractors = new ObservableCollection<Contractor>(linkedContractors)
+                    };
+                })
+            );
         }
 
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            //if (DataContext is MainViewModel vm)
-            //    vm.SelectedPerson = e.NewValue as Person;
             if (e.NewValue is Project project)
             {
                 SelectedProject = project;
+            }
+            else if (e.NewValue is Contractor contractor)
+            {
+                SelectedContractor = contractor;
+                var parent = contractor.ParentProject;
+                if (parent != null)
+                {
+                    SelectedProject = parent;
+                    Console.WriteLine($"Parent project: {parent.Name}");
+                }
             }
 
         }
@@ -161,13 +187,26 @@ namespace WPFsnapshot
                 //}
                 //var (lastCounter, lastProject) = _snapshotUndo.Peek();
                 var snapshotUndoArray = _snapshotUndo.Reverse().ToArray();
-                var (lastCounter, lastProject) = snapshotUndoArray[UndoCount-1];
-                if (lastProject is Project lastProj){
-                    SelectedProject.Name = lastProj.Name;
+                //if (UndoCount - 1 < snapshotUndoArray.Length)
+                //{
+                //    return;
+                //}
+                try
+                {
+                    var (lastCounter, lastProject) = snapshotUndoArray[UndoCount - 1];
+                    if (lastProject is Project lastProj)
+                    {
+                        SelectedProject.Name = lastProj.Name;
+                    }
+                    UndoCount = lastCounter;
+                    startRedo = true;
+                    startUndo = false;
                 }
-                UndoCount = lastCounter;
-                startRedo = true;
-                startUndo = false;
+                catch
+                {
+
+                }
+                
                 //UndoCount++;
                 //SelectedProject.Name = lastProject.;
 
@@ -191,22 +230,30 @@ namespace WPFsnapshot
             {
                 
                 //var (lastCounter, lastProject) = _snapshotUndo.Peek();
-                if(RedoCount!= UndoCount && startRedo ==true)
+                //if(RedoCount!= UndoCount && startRedo ==true)
+                //{
+                //    RedoCount = UndoCount;
+                //}
+                var snapshotRedoArray = _snapshotRedo.Reverse().ToArray();
+                try
                 {
                     RedoCount = UndoCount;
+                    var (lastCounter, lastProject) = snapshotRedoArray[RedoCount];
+                    if (lastProject is Project lastProj)
+                    {
+                        SelectedProject.Name = lastProj.Name;
+                    }
+
+                    RedoCount++;
+                    UndoCount = RedoCount;
+                    startRedo = false;
+                    startUndo = true;
                 }
-                var snapshotRedoArray = _snapshotRedo.Reverse().ToArray();
-                //RedoCount = UndoCount;
-                var (lastCounter, lastProject) = snapshotRedoArray[RedoCount ];
-                if (lastProject is Project lastProj)
+                catch
                 {
-                    SelectedProject.Name = lastProj.Name;
+
                 }
                 
-                RedoCount++;
-                UndoCount = RedoCount;
-                startRedo = false;
-                startUndo = true;
 
             }
         }

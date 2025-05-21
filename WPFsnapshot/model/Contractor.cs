@@ -29,6 +29,8 @@ namespace WPFsnapshot.model
             set { _projectGuid = value; OnPropertyChanged(); }
         }
 
+        public Project? ParentProject { get; set; }
+
         public Contractor Clone()
         {
             return new Contractor

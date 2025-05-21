@@ -70,11 +70,11 @@
             <Grid Grid.Column="2" Background="FloralWhite">
                 <StackPanel>
                     <TextBlock Text="Contractor Guid"/>
-                    <TextBox Text=""/>
+                    <TextBox Text="{Binding SelectedContractor.Guid, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock Text="Contractor Name"/>
-                    <TextBox Text=""/>
+                    <TextBox Text="{Binding SelectedContractor.Name, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock Text="Project Guid"/>
-                    <TextBox Text=""/>
+                    <TextBox Text="{Binding SelectedContractor.ProjectGuid, UpdateSourceTrigger=PropertyChanged}"/>
                 </StackPanel>
 
             </Grid>
