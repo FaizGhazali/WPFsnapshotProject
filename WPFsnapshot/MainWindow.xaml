@@ -54,11 +54,16 @@
             <Grid Grid.Column="1" Background="AntiqueWhite">
                 <StackPanel>
                     <TextBlock Text="Project Guid"/>
-                    <TextBox Text="{Binding SelectedProject.Guid, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox Text="{Binding SelectedProject.Guid, UpdateSourceTrigger=PropertyChanged}"
+                             x:Name="GuidTextbox"
+                             TextChanged="GuidBox_TextChanged"
+                            />
                     <TextBlock Text="Project Name"/>
                     <TextBox 
                         Text="{Binding SelectedProject.Name,    UpdateSourceTrigger=PropertyChanged}"
-                        TextChanged="NameBox_TextChanged"/>
+                        TextChanged="NameBox_TextChanged"
+                        PreviewMouseDown="GuidBox_MouseDown"
+                        LostFocus="GuidBox_LostFocus"/>
                 </StackPanel>
 
             </Grid>
@@ -76,7 +81,11 @@
 
             <Grid Grid.Column="2" Grid.Row="1">
                 <Grid>
-                    <Button Content="Undo" Click="Undo_Click" Height="30"/>
+                    <StackPanel>
+                        <Button Content="{Binding UndoButtonText}" Click="Undo_Click3" />
+                        <Button Content="{Binding RedoButtonText}" Click="Redo_Click3" />
+                    </StackPanel>
+                    
                     
                 </Grid>
 

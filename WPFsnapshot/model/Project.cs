@@ -31,8 +31,8 @@ namespace WPFsnapshot.model
             return new Project
             {
                 Guid = this.Guid,
-                Name = this.Name
-                
+                Name = this.Name,
+                Contractors = this.Contractors
             };
         }
 

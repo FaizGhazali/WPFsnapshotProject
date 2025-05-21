@@ -15,6 +15,7 @@ using System.ComponentModel;
 using WPFsnapshot.model;
 using System;
 using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 
 namespace WPFsnapshot
 {
@@ -23,8 +24,19 @@ namespace WPFsnapshot
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        //undo stack
+        public int CounterSnapshot =0;
+        public bool CounterSnapshotSwitch = true;
+
+        //stack
         private Stack<Project> _projectUndoStack = new();
+        private Stack<Project> _projectRedoStack = new();
+        private Stack<Project> _undoStack = new();
+        private Stack<Project> _redoStack = new();
+
+        private Stack<(int, object)>_snapshotUndo = new();
+        private Stack<(int, object)>_snapshotRedo = new();
+        private bool startRedo;
+        private bool startUndo;
         //
         public ObservableCollection<Project>? Projects { get; set; }
 
@@ -35,8 +47,37 @@ namespace WPFsnapshot
             set
             {
                 _selectedProject = value;
-                _projectUndoStack.Clear();
+                //_projectUndoStack.Clear();
+                //_projectRedoStack.Clear();
+                TakeSnapshot();
                 OnPropertyChanged();
+            }
+        }
+
+        private int _undoCount;
+        public int UndoCount
+        {
+            get => _undoCount;
+            set
+            {
+                _undoCount = value;
+                OnPropertyChanged(nameof(UndoCount));
+                OnPropertyChanged(nameof(UndoButtonText)); // update button text
+            }
+        }
+        public string UndoButtonText => $"Undo ({UndoCount})";
+
+        public string RedoButtonText => $"Redo ({RedoCount})";
+
+        private int _redoCount;
+        public int RedoCount
+        {
+            get => _redoCount;
+            set
+            {
+                _redoCount = value;
+                OnPropertyChanged(nameof(RedoCount));
+                OnPropertyChanged(nameof(RedoButtonText)); // update button text
             }
         }
 
@@ -98,15 +139,205 @@ namespace WPFsnapshot
                 _lastSnapshotName = SelectedProject.Name;
             }
         }
-        private void Undo_Click(object sender, RoutedEventArgs e)
+        private void Undo_Click2(object sender, RoutedEventArgs e)
         {
             if (_projectUndoStack.Count > 1)
             {
-                _projectUndoStack.Pop();
+                var firstpop = _projectUndoStack.Pop();
+                _projectRedoStack.Push(firstpop);
                 var last = _projectUndoStack.Pop();
+                
                 SelectedProject.Name = last.Name;
                 // Restore other fields too...
             }
+        }
+        private void Undo_Click3(object sender, RoutedEventArgs e)
+        {
+            if (_snapshotUndo.Count >0)
+            {
+                //if (startUndo = true)
+                //{
+                //    UndoCount = RedoCount;
+                //}
+                //var (lastCounter, lastProject) = _snapshotUndo.Peek();
+                var snapshotUndoArray = _snapshotUndo.Reverse().ToArray();
+                var (lastCounter, lastProject) = snapshotUndoArray[UndoCount-1];
+                if (lastProject is Project lastProj){
+                    SelectedProject.Name = lastProj.Name;
+                }
+                UndoCount = lastCounter;
+                startRedo = true;
+                startUndo = false;
+                //UndoCount++;
+                //SelectedProject.Name = lastProject.;
+
+            }
+        }
+        private void Redo_Click2(object sender, RoutedEventArgs e)
+        {
+            if (_projectRedoStack.Count > 0)
+            {
+                var firstpop = _projectRedoStack.Pop();
+                _projectUndoStack.Push(firstpop);
+                var last = _projectRedoStack.Pop();
+
+                SelectedProject.Name = last.Name;
+            }
+        }
+
+        private void Redo_Click3(object sender, RoutedEventArgs e)
+        {
+            if (_snapshotRedo.Count > 0)
+            {
+                
+                //var (lastCounter, lastProject) = _snapshotUndo.Peek();
+                if(RedoCount!= UndoCount && startRedo ==true)
+                {
+                    RedoCount = UndoCount;
+                }
+                var snapshotRedoArray = _snapshotRedo.Reverse().ToArray();
+                //RedoCount = UndoCount;
+                var (lastCounter, lastProject) = snapshotRedoArray[RedoCount ];
+                if (lastProject is Project lastProj)
+                {
+                    SelectedProject.Name = lastProj.Name;
+                }
+                
+                RedoCount++;
+                UndoCount = RedoCount;
+                startRedo = false;
+                startUndo = true;
+
+            }
+        }
+        private void TakeSnapshot()
+        {
+            if (SelectedProject != null)
+            {
+                _undoStack.Push(SelectedProject.Clone());
+                _redoStack.Clear();
+
+            }
+        }
+        private void Undo()
+        {
+            if (_undoStack.Count == 0) return;
+
+            var current = SelectedProject.Clone();
+            _redoStack.Push(current); // Save current to redo stack
+
+            var previous = _undoStack.Pop(); // Get previous state
+            RestoreProject(previous);
+        }
+
+        private void Redo()
+        {
+            if (_redoStack.Count == 0) return;
+
+            var current = SelectedProject.Clone();
+            _undoStack.Push(current); // Save current to undo stack
+
+            var next = _redoStack.Pop();
+            RestoreProject(next);
+        }
+        private void RestoreProject(Project project)
+        {
+            if (SelectedProject == null) return;
+
+            SelectedProject.Name = project.Name;
+            // restore other properties too...
+        }
+        private void Undo_Click(object sender, RoutedEventArgs e) => Undo();
+
+        private void Redo_Click(object sender, RoutedEventArgs e) => Redo();
+
+        private void GuidBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+           
+        }
+
+        private void GuidBox_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+
+            //if(_snapshotUndo.Count == 0|| this.GuidTextbox.Text != SelectedProject.Guid.ToString())
+            //{
+            //    _snapshotUndo.Push((CounterSnapshot, SelectedProject.Clone()));
+            //    UndoCount += 1;
+            //}
+
+            var newSnapshot = (CounterSnapshot, SelectedProject.Clone());
+
+            if (_snapshotUndo.Count > 0)
+            {
+                var (lastCounter, lastProject) = _snapshotUndo.Peek();
+                if (lastProject is Project lastProj && SelectedProject is Project selectedProj)
+                {
+                    if (lastProj.Guid == selectedProj.Guid)
+                    {
+                        bool isSame =
+                            lastCounter == newSnapshot.CounterSnapshot &&
+                            lastProj.Guid == SelectedProject.Guid &&
+                            lastProj.Name == SelectedProject.Name;
+
+                        if (isSame)
+                            return; // Same as last, skip push
+                    }
+                }
+
+                
+            }
+
+            // New or different snapshot — push
+            _snapshotUndo.Push(newSnapshot);
+            UndoCount++;
+
+
+        }
+        
+
+        private void GuidBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (SelectedProject == null)
+                return;
+            //if (this.GuidTextbox.Text !=SelectedProject.Guid.ToString())
+            //{
+                var newSnapshot = (CounterSnapshot, SelectedProject.Clone());
+                if (_snapshotRedo.Count > 0)
+                {
+                    var (lastCounter, lastProject) = _snapshotRedo.Peek();
+                    if (lastProject is Project lastProj && SelectedProject is Project selectedProj)
+                    {
+                        if (lastProj.Guid == selectedProj.Guid)
+                        {
+                            bool isSame =
+                              lastProj.Guid == SelectedProject.Guid &&
+                              lastProj.Name == SelectedProject.Name;
+                            if (isSame)
+                            {
+                                return; // Same as last snapshot — skip
+                            }
+                        }
+                    }
+               
+                        
+                }
+
+                _snapshotRedo.Push((CounterSnapshot, SelectedProject.Clone()));
+                CounterSnapshot += 1;
+                RedoCount += 1;
+            //}
+        }
+        private void SnapshotCounter()
+        {
+            if (CounterSnapshotSwitch == true)
+            {
+                CounterSnapshotSwitch = false;
+                //cari max index of the snapshot
+            }
+        }
+        private void SnapshotProcess()
+        {
+
         }
     }
 }
