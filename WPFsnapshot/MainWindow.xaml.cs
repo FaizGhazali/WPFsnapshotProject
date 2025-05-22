@@ -21,6 +21,9 @@ using ActiproSoftware.Windows.Controls.Docking;
 using WPFsnapshot.services;
 using WPFsnapshot.factories;
 using System.Threading.Tasks;
+using WPFsnapshot.viewModel;
+using System.Windows.Threading;
+using System.Diagnostics;
 
 namespace WPFsnapshot
 {
@@ -99,6 +102,9 @@ namespace WPFsnapshot
             }
         }
 
+        private TabUCVM _currentTabVM;
+
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
@@ -120,6 +126,8 @@ namespace WPFsnapshot
             _selectedProjectService = App.ServiceProvider.GetRequiredService<SelectedProjectService>();
             _tabFactory = App.ServiceProvider.GetRequiredService<ITabUCVMFactory>();
             SelectProjectCommand = new RelayCommand<Project>(SelectProject);
+
+            dockSite.WindowActivated += DockSite_WindowActivated;
 
             var dbLink = App.ServiceProvider!.GetRequiredService<IDBconnection>();
             var oriProjects =dbLink.GetAllRecords<Project>("Project");
@@ -163,7 +171,7 @@ namespace WPFsnapshot
                     this.SelectProjectCommand.Execute(project);
                 }
                 SelectedProject = _selectedProjectService.SelectedProject;
-                AddNewTab(SelectedProject);
+                AddNewTab(_selectedProjectService.SelectedProject);
             }
             else if (e.NewValue is Contractor contractor)
             {
@@ -453,8 +461,12 @@ namespace WPFsnapshot
 
             if (existingTab != null)
             {
+                Debug.WriteLine(existingTab.Content?.GetType().FullName);
                 // Tab already exists, just focus it
                 existingTab.Activate();
+
+                
+
                 return;
             }
             var tabUCviewModel = _tabFactory.Create(project);
@@ -467,7 +479,7 @@ namespace WPFsnapshot
                 
 
             };
-
+            
             var document = new DocumentWindow(dockSite)
             {
                 Title = $"Project ({project.Name})",
@@ -476,10 +488,36 @@ namespace WPFsnapshot
                 Tag = project.Guid
             };
 
-
+            
             // Optionally set MDI host
             document.Activate(); // Opens the tab and focuses it
+            document.Focus();
         }
+        private void DockSite_WindowActivated(object sender, DockingWindowEventArgs e)
+        {
+            if (e.Window is DocumentWindow window &&
+                window.Content is ScrollViewer scroll &&
+                scroll.Content is TabUC tabUC &&
+                tabUC.DataContext is TabUCVM vm)
+            {
+                _currentTabVM = vm;
+            }
+            else
+            {
+                _currentTabVM = null;
+            }
+        }
+        private void Undo_Click12(object sender, RoutedEventArgs e)
+        {
+            _currentTabVM?.UndoRedo?.Undo();
+        }
+
+        private void Redo_Click12(object sender, RoutedEventArgs e)
+        {
+            _currentTabVM?.UndoRedo?.Redo();
+        }
+
+        
 
     }
 }

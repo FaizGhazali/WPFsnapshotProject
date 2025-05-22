@@ -28,6 +28,44 @@ namespace WPFsnapshot.view
             
         }
 
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            var vm = this.DataContext as TabUCVM;
+            if (vm != null)
+            {
+                vm.RenameProject();
+            }
+            var target = this.dummyTextbox;
+            target.Focus();
+        }
 
+        private void TextBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var vm = this.DataContext as TabUCVM;
+            if (vm != null)
+            {
+                vm.HandleClone();
+            }
+        }
+
+        private void TextBox_PreviewMouseDown_1(object sender, MouseButtonEventArgs e)
+        {
+            var vm = this.DataContext as TabUCVM;
+            if (vm != null)
+            {
+                vm.HandleCloneGame();
+            }
+        }
+
+        private void TextBox_LostFocus_1(object sender, RoutedEventArgs e)
+        {
+            var vm = this.DataContext as TabUCVM;
+            if (vm != null)
+            {
+                vm.RenameGame();
+            }
+            var target = this.dummyTextbox;
+            target.Focus();
+        }
     }
 }

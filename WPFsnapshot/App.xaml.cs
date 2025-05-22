@@ -50,6 +50,7 @@ namespace WPFsnapshot
 
             //Services
             services.AddSingleton<SelectedProjectService>();
+            services.AddSingleton<UndoRedoManager>();
 
         }
         public App()
