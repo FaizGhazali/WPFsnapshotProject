@@ -198,6 +198,10 @@ namespace WPFsnapshot
                     {
                         SelectedProject.Name = lastProj.Name;
                     }
+                    if (lastProject is Contractor lastContr)
+                    {
+                        SelectedContractor.Name = lastContr.Name;
+                    }
                     UndoCount = lastCounter;
                     startRedo = true;
                     startUndo = false;
@@ -242,6 +246,10 @@ namespace WPFsnapshot
                     if (lastProject is Project lastProj)
                     {
                         SelectedProject.Name = lastProj.Name;
+                    }
+                    if(lastProject is Contractor lastContr)
+                    {
+                        SelectedContractor.Name = lastContr.Name;
                     }
 
                     RedoCount++;
@@ -348,30 +356,53 @@ namespace WPFsnapshot
                 return;
             //if (this.GuidTextbox.Text !=SelectedProject.Guid.ToString())
             //{
-                var newSnapshot = (CounterSnapshot, SelectedProject.Clone());
-                if (_snapshotRedo.Count > 0)
-                {
-                    var (lastCounter, lastProject) = _snapshotRedo.Peek();
-                    if (lastProject is Project lastProj && SelectedProject is Project selectedProj)
+            var newSnapshot = (CounterSnapshot, SelectedProject.Clone());
+            if (_snapshotRedo.Count > 0)
+            {
+                var (lastCounter, lastProject) = _snapshotRedo.Peek();
+                bool isReturn = false;
+                if (lastProject is Project lastProj && SelectedProject is Project selectedProj){
+                        
+                    if (lastProj.Guid == selectedProj.Guid)
                     {
-                        if (lastProj.Guid == selectedProj.Guid)
+                        bool isSame =
+                            lastProj.Guid == SelectedProject.Guid &&
+                            lastProj.Name == SelectedProject.Name;
+                        if (isSame)
                         {
-                            bool isSame =
-                              lastProj.Guid == SelectedProject.Guid &&
-                              lastProj.Name == SelectedProject.Name;
-                            if (isSame)
-                            {
-                                return; // Same as last snapshot — skip
-                            }
+                            isReturn = true;
+                        }
+                        else
+                        {
+                            isReturn = false;
                         }
                     }
-               
-                        
                 }
+                if(lastProject is Contractor lastContr)
+                {
+                    if(lastContr.Guid == SelectedContractor.Guid)
+                    {
+                        bool isSame = lastContr.Name== SelectedContractor.Name;
+                        if (isSame)
+                        {
+                            isReturn = true;
+                        }
+                        else
+                        {
+                            isReturn =false ;
+                        }
+                    }
+                }
+                if (isReturn)
+                {
+                    return;
+                }
+            }
 
-                _snapshotRedo.Push((CounterSnapshot, SelectedProject.Clone()));
-                CounterSnapshot += 1;
-                RedoCount += 1;
+            _snapshotRedo.Push((CounterSnapshot, SelectedProject.Clone()));
+           // _snapshotRedo.Push((CounterSnapshot, SelectedContractor.Clone()));
+            CounterSnapshot += 1;
+            RedoCount += 1;
             //}
         }
         private void SnapshotCounter()

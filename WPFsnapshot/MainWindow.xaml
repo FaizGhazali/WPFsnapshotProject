@@ -72,9 +72,12 @@
                     <TextBlock Text="Contractor Guid"/>
                     <TextBox Text="{Binding SelectedContractor.Guid, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock Text="Contractor Name"/>
-                    <TextBox Text="{Binding SelectedContractor.Name, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox Text="{Binding SelectedContractor.Name, UpdateSourceTrigger=PropertyChanged}"
+                             PreviewMouseDown="GuidBox_MouseDown"
+                             LostFocus="GuidBox_LostFocus"/>
                     <TextBlock Text="Project Guid"/>
-                    <TextBox Text="{Binding SelectedContractor.ProjectGuid, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox Text="{Binding SelectedContractor.ProjectGuid, UpdateSourceTrigger=PropertyChanged}"
+                         />
                 </StackPanel>
 
             </Grid>
