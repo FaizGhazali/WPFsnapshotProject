@@ -17,10 +17,6 @@
         <TextBox 
         Text="{Binding SelectedProject.Name,    UpdateSourceTrigger=PropertyChanged}"
         />
-
-        
-
-
     </StackPanel>
 
 </UserControl>

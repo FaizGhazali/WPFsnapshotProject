@@ -3,7 +3,10 @@ using System.Data;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using SnapShotHelper;
+using WPFsnapshot.factories;
+using WPFsnapshot.services;
 using WPFsnapshot.view;
+using WPFsnapshot.viewModel;
 
 namespace WPFsnapshot
 {
@@ -35,7 +38,19 @@ namespace WPFsnapshot
 
                 return new DBconnection(projectName, projectFolder);
             });
+
+            //UC
             services.AddTransient<TabUC>();
+
+            //VM
+            services.AddTransient<TabUCVM>();
+
+            //Factories
+            services.AddSingleton<ITabUCVMFactory, TabUCVMFactory>();
+
+            //Services
+            services.AddSingleton<SelectedProjectService>();
+
         }
         public App()
         {

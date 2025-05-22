@@ -42,7 +42,8 @@
             <Grid Grid.Column="0" >
                 <TreeView ItemsSource="{Binding Projects}" 
                           Background="Azure"
-                    SelectedItemChanged="TreeView_SelectedItemChanged">
+                    SelectedItemChanged="TreeView_SelectedItemChanged"
+                          >
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate ItemsSource="{Binding Contractors}">
                             <StackPanel>

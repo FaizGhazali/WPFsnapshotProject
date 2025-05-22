@@ -18,6 +18,9 @@ using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using WPFsnapshot.view;
 using ActiproSoftware.Windows.Controls.Docking;
+using WPFsnapshot.services;
+using WPFsnapshot.factories;
+using System.Threading.Tasks;
 
 namespace WPFsnapshot
 {
@@ -100,12 +103,23 @@ namespace WPFsnapshot
         protected void OnPropertyChanged([CallerMemberName] string name = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
+        //DI
+        private readonly SelectedProjectService _selectedProjectService;
+        private readonly ITabUCVMFactory _tabFactory;
+
+        //ICommand
+        public ICommand SelectProjectCommand { get; }
+
 
         public MainWindow()
         {
             
             InitializeComponent();
             DataContext = this;
+
+            _selectedProjectService = App.ServiceProvider.GetRequiredService<SelectedProjectService>();
+            _tabFactory = App.ServiceProvider.GetRequiredService<ITabUCVMFactory>();
+            SelectProjectCommand = new RelayCommand<Project>(SelectProject);
 
             var dbLink = App.ServiceProvider!.GetRequiredService<IDBconnection>();
             var oriProjects =dbLink.GetAllRecords<Project>("Project");
@@ -134,12 +148,21 @@ namespace WPFsnapshot
                 })
             );
         }
-
+        private void SelectProject(Project project)
+        {
+            _selectedProjectService.SelectedProject = project;
+        }
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (e.NewValue is Project project)
             {
-                SelectedProject = project;
+                //SelectedProject = project;
+
+                if (this.SelectProjectCommand.CanExecute(project))
+                {
+                    this.SelectProjectCommand.Execute(project);
+                }
+                SelectedProject = _selectedProjectService.SelectedProject;
                 AddNewTab(SelectedProject);
             }
             else if (e.NewValue is Contractor contractor)
@@ -434,7 +457,9 @@ namespace WPFsnapshot
                 existingTab.Activate();
                 return;
             }
+            var tabUCviewModel = _tabFactory.Create(project);
             var tabUC = App.ServiceProvider.GetRequiredService<TabUC>();
+            tabUC.DataContext = tabUCviewModel;
             var scrollable = new ScrollViewer
             {
                 Content = tabUC,
