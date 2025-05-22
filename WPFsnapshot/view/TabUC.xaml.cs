@@ -24,5 +24,7 @@ namespace WPFsnapshot.view
         {
             InitializeComponent();
         }
+
+
     }
 }

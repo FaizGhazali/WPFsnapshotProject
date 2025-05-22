@@ -7,7 +7,20 @@
              mc:Ignorable="d" 
              d:Background="White"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <TextBlock Text="Hello world"/>
-    </Grid>
+    <StackPanel>
+        <TextBlock Text="Project Guid"/>
+        <TextBox Text="{Binding SelectedProject.Guid, UpdateSourceTrigger=PropertyChanged}"
+             x:Name="GuidTextbox"
+             
+            />
+        <TextBlock Text="Project Name"/>
+        <TextBox 
+        Text="{Binding SelectedProject.Name,    UpdateSourceTrigger=PropertyChanged}"
+        />
+
+        
+
+
+    </StackPanel>
+
 </UserControl>

@@ -140,7 +140,7 @@ namespace WPFsnapshot
             if (e.NewValue is Project project)
             {
                 SelectedProject = project;
-                AddNewTab();
+                AddNewTab(SelectedProject);
             }
             else if (e.NewValue is Contractor contractor)
             {
@@ -423,20 +423,32 @@ namespace WPFsnapshot
 
 
         //----------------------------------------------tab test----------------------------------------
-        private void AddNewTab()
+        private void AddNewTab(Project project)
         {
+
+            var existingTab = dockSite.DocumentWindows.FirstOrDefault(w => w.Tag is Guid g && g == project.Guid);
+
+            if (existingTab != null)
+            {
+                // Tab already exists, just focus it
+                existingTab.Activate();
+                return;
+            }
             var tabUC = App.ServiceProvider.GetRequiredService<TabUC>();
             var scrollable = new ScrollViewer
             {
                 Content = tabUC,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                
+
             };
 
             var document = new DocumentWindow(dockSite)
             {
-                Title = "My New Tab",
+                Title = $"Project ({project.Name})",
                 Content = scrollable,
-                CanClose = true
+                CanClose = true,
+                Tag = project.Guid
             };
 
 
