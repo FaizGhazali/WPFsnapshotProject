@@ -3,6 +3,7 @@ using System.Data;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using SnapShotHelper;
+using WPFsnapshot.view;
 
 namespace WPFsnapshot
 {
@@ -34,6 +35,7 @@ namespace WPFsnapshot
 
                 return new DBconnection(projectName, projectFolder);
             });
+            services.AddTransient<TabUC>();
         }
         public App()
         {

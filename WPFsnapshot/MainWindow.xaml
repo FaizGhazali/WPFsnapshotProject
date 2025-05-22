@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WPFsnapshot"
         xmlns:docking="http://schemas.actiprosoftware.com/winfx/xaml/docking"
+        xmlns:view="clr-namespace:WPFsnapshot.view"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
 
@@ -66,33 +67,17 @@
                         PreviewMouseDown="GuidBox_MouseDown"
                         LostFocus="GuidBox_LostFocus"/>
 
-                    <docking:DockSite Grid.Row="1" CanToolWindowsFloat="True">
+                    <docking:DockSite Grid.Row="1" CanToolWindowsFloat="True" x:Name="dockSite">
                         <docking:SplitContainer Orientation="Horizontal">
                             <docking:SplitContainer Orientation="Vertical">
 
                                 <docking:Workspace>
                                     <docking:TabbedMdiHost>
-                                        <docking:TabbedMdiContainer>
-                                            <docking:ToolWindow Title="Plant Manual" >
-                                                <ScrollViewer>
-                                                    <!--view:PlantManualUC/-->
-                                                    <!--local:PlantManualUC x:Name="plantManualUC"/-->
-                                                    <!--ContentControl x:Name="plantManualUC" DataContext="{Binding SelectedPlant}"/-->
-                                                </ScrollViewer>
-                                            </docking:ToolWindow>
+                                        <docking:TabbedMdiContainer x:Name="mdiContainer">
+                                            
                                         </docking:TabbedMdiContainer>
                                     </docking:TabbedMdiHost>
                                 </docking:Workspace>
-
-                                <docking:ToolWindowContainer x:Name="OutputWindow"  VerticalAlignment="Stretch">
-                                    <docking:ToolWindow Title="Output">
-
-                                        <ContentControl x:Name="OutputUC" DataContext="{Binding SelectedPlant}"/>
-
-                                    </docking:ToolWindow>
-                                </docking:ToolWindowContainer>
-
-
                             </docking:SplitContainer>
                         </docking:SplitContainer>
                     </docking:DockSite>

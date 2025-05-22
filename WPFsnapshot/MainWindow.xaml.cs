@@ -16,6 +16,8 @@ using WPFsnapshot.model;
 using System;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
+using WPFsnapshot.view;
+using ActiproSoftware.Windows.Controls.Docking;
 
 namespace WPFsnapshot
 {
@@ -138,6 +140,7 @@ namespace WPFsnapshot
             if (e.NewValue is Project project)
             {
                 SelectedProject = project;
+                AddNewTab();
             }
             else if (e.NewValue is Contractor contractor)
             {
@@ -417,5 +420,29 @@ namespace WPFsnapshot
         {
 
         }
+
+
+        //----------------------------------------------tab test----------------------------------------
+        private void AddNewTab()
+        {
+            var tabUC = App.ServiceProvider.GetRequiredService<TabUC>();
+            var scrollable = new ScrollViewer
+            {
+                Content = tabUC,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+            };
+
+            var document = new DocumentWindow(dockSite)
+            {
+                Title = "My New Tab",
+                Content = scrollable,
+                CanClose = true
+            };
+
+
+            // Optionally set MDI host
+            document.Activate(); // Opens the tab and focuses it
+        }
+
     }
 }
