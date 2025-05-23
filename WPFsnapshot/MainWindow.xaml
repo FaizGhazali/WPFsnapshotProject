@@ -42,7 +42,8 @@
             <Grid Grid.Column="0" >
                 <TreeView ItemsSource="{Binding Projects}" 
                           Background="Azure"
-                    SelectedItemChanged="TreeView_SelectedItemChanged">
+                    SelectedItemChanged="TreeView_SelectedItemChanged"
+                          >
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate ItemsSource="{Binding Contractors}">
                             <StackPanel>
@@ -58,7 +59,7 @@
                     <TextBlock Text="Project Guid"/>
                     <TextBox Text="{Binding SelectedProject.Guid, UpdateSourceTrigger=PropertyChanged}"
                              x:Name="GuidTextbox"
-                             TextChanged="GuidBox_TextChanged"
+                             
                             />
                     <TextBlock Text="Project Name"/>
                     <TextBox 
@@ -104,8 +105,8 @@
             <Grid Grid.Column="2" Grid.Row="1">
                 <Grid>
                     <StackPanel>
-                        <Button Content="{Binding UndoButtonText}" Click="Undo_Click3" />
-                        <Button Content="{Binding RedoButtonText}" Click="Redo_Click3" />
+                        <Button Content="{Binding UndoCount}" Click="Undo_Click12" />
+                        <Button Content="{Binding RedoCount}" Click="Redo_Click12" />
                     </StackPanel>
                     
                     
