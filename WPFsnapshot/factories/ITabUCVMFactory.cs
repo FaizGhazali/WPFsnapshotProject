@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,20 +8,9 @@ using WPFsnapshot.viewModel;
 
 namespace WPFsnapshot.factories
 {
-    public class TabUCVMFactory : ITabUCVMFactory
+    public interface ITabUCVMFactory
     {
-        private readonly IServiceProvider _serviceProvider;
-
-        public TabUCVMFactory(IServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
-
-        public TabUCVM Create(Project project)
-        {
-            var vm = _serviceProvider.GetRequiredService<TabUCVM>();
-            vm.Project = project;
-            return vm;
-        }
+        TabUCVM Create(Project project);
     }
+
 }

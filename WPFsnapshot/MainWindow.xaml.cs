@@ -43,8 +43,8 @@ namespace WPFsnapshot
 
         private Stack<(int, object)>_snapshotUndo = new();
         private Stack<(int, object)>_snapshotRedo = new();
-        private bool startRedo;
-        private bool startUndo;
+        
+        
         //
         public ObservableCollection<Project>? Projects { get; set; }
 
@@ -75,38 +75,21 @@ namespace WPFsnapshot
             }
         }
 
-        private int _undoCount;
-        public int UndoCount
-        {
-            get => _undoCount;
-            set
-            {
-                _undoCount = value;
-                OnPropertyChanged(nameof(UndoCount));
-                OnPropertyChanged(nameof(UndoButtonText)); // update button text
-            }
-        }
-        public string UndoButtonText => $"Undo ({UndoCount})";
+       
+        public string UndoButtonText => $"Undo ({_undoRedoService.UndoCount})";
 
-        public string RedoButtonText => $"Redo ({RedoCount})";
+        public string RedoButtonText => $"Redo ({_undoRedoService.RedoCount})";
+        public String UndoCount => $"Undo ({_undoRedoService.UndoCount})"; 
+        public String RedoCount => $"Redo ({_undoRedoService.RedoCount})"; 
 
-        private int _redoCount;
-        public int RedoCount
-        {
-            get => _redoCount;
-            set
-            {
-                _redoCount = value;
-                OnPropertyChanged(nameof(RedoCount));
-                OnPropertyChanged(nameof(RedoButtonText)); // update button text
-            }
-        }
+        
 
         private TabUCVM _currentTabVM;
+        private UndoRedoService _undoRedoService;
 
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null) =>
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         //DI
@@ -117,17 +100,26 @@ namespace WPFsnapshot
         public ICommand SelectProjectCommand { get; }
 
 
-        public MainWindow()
+        public MainWindow(SelectedProjectService sps, ITabUCVMFactory itf, UndoRedoService urs)
         {
             
             InitializeComponent();
             DataContext = this;
 
-            _selectedProjectService = App.ServiceProvider.GetRequiredService<SelectedProjectService>();
-            _tabFactory = App.ServiceProvider.GetRequiredService<ITabUCVMFactory>();
+            _selectedProjectService = sps;
+            _tabFactory = itf;
             SelectProjectCommand = new RelayCommand<Project>(SelectProject);
+            _undoRedoService = urs;
 
-            dockSite.WindowActivated += DockSite_WindowActivated;
+            dockSite.WindowActivated += DockSite_WindowActivated!;
+
+            _undoRedoService.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(UndoRedoService.UndoCount))
+                    OnPropertyChanged(nameof(UndoCount));
+                if (e.PropertyName == nameof(UndoRedoService.RedoCount))
+                    OnPropertyChanged(nameof(RedoCount));
+            };
 
             var dbLink = App.ServiceProvider!.GetRequiredService<IDBconnection>();
             var oriProjects =dbLink.GetAllRecords<Project>("Project");
@@ -211,45 +203,7 @@ namespace WPFsnapshot
                 // Restore other fields too...
             }
         }
-        private void Undo_Click3(object sender, RoutedEventArgs e)
-        {
-            if (_snapshotUndo.Count >0)
-            {
-                //if (startUndo = true)
-                //{
-                //    UndoCount = RedoCount;
-                //}
-                //var (lastCounter, lastProject) = _snapshotUndo.Peek();
-                var snapshotUndoArray = _snapshotUndo.Reverse().ToArray();
-                //if (UndoCount - 1 < snapshotUndoArray.Length)
-                //{
-                //    return;
-                //}
-                try
-                {
-                    var (lastCounter, lastProject) = snapshotUndoArray[UndoCount - 1];
-                    if (lastProject is Project lastProj)
-                    {
-                        SelectedProject.Name = lastProj.Name;
-                    }
-                    if (lastProject is Contractor lastContr)
-                    {
-                        SelectedContractor.Name = lastContr.Name;
-                    }
-                    UndoCount = lastCounter;
-                    startRedo = true;
-                    startUndo = false;
-                }
-                catch
-                {
-
-                }
-                
-                //UndoCount++;
-                //SelectedProject.Name = lastProject.;
-
-            }
-        }
+        
         private void Redo_Click2(object sender, RoutedEventArgs e)
         {
             if (_projectRedoStack.Count > 0)
@@ -262,43 +216,7 @@ namespace WPFsnapshot
             }
         }
 
-        private void Redo_Click3(object sender, RoutedEventArgs e)
-        {
-            if (_snapshotRedo.Count > 0)
-            {
-                
-                //var (lastCounter, lastProject) = _snapshotUndo.Peek();
-                //if(RedoCount!= UndoCount && startRedo ==true)
-                //{
-                //    RedoCount = UndoCount;
-                //}
-                var snapshotRedoArray = _snapshotRedo.Reverse().ToArray();
-                try
-                {
-                    RedoCount = UndoCount;
-                    var (lastCounter, lastProject) = snapshotRedoArray[RedoCount];
-                    if (lastProject is Project lastProj)
-                    {
-                        SelectedProject.Name = lastProj.Name;
-                    }
-                    if(lastProject is Contractor lastContr)
-                    {
-                        SelectedContractor.Name = lastContr.Name;
-                    }
-
-                    RedoCount++;
-                    UndoCount = RedoCount;
-                    startRedo = false;
-                    startUndo = true;
-                }
-                catch
-                {
-
-                }
-                
-
-            }
-        }
+        
         private void TakeSnapshot()
         {
             if (SelectedProject != null)
@@ -348,12 +266,7 @@ namespace WPFsnapshot
         private void GuidBox_MouseDown(object sender, MouseButtonEventArgs e)
         {
 
-            //if(_snapshotUndo.Count == 0|| this.GuidTextbox.Text != SelectedProject.Guid.ToString())
-            //{
-            //    _snapshotUndo.Push((CounterSnapshot, SelectedProject.Clone()));
-            //    UndoCount += 1;
-            //}
-
+          
             var newSnapshot = (CounterSnapshot, SelectedProject.Clone());
 
             if (_snapshotUndo.Count > 0)
@@ -378,7 +291,7 @@ namespace WPFsnapshot
 
             // New or different snapshot — push
             _snapshotUndo.Push(newSnapshot);
-            UndoCount++;
+            //UndoCount++;
 
 
         }
@@ -386,58 +299,7 @@ namespace WPFsnapshot
 
         private void GuidBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            if (SelectedProject == null)
-                return;
-            //if (this.GuidTextbox.Text !=SelectedProject.Guid.ToString())
-            //{
-            var newSnapshot = (CounterSnapshot, SelectedProject.Clone());
-            if (_snapshotRedo.Count > 0)
-            {
-                var (lastCounter, lastProject) = _snapshotRedo.Peek();
-                bool isReturn = false;
-                if (lastProject is Project lastProj && SelectedProject is Project selectedProj){
-                        
-                    if (lastProj.Guid == selectedProj.Guid)
-                    {
-                        bool isSame =
-                            lastProj.Guid == SelectedProject.Guid &&
-                            lastProj.Name == SelectedProject.Name;
-                        if (isSame)
-                        {
-                            isReturn = true;
-                        }
-                        else
-                        {
-                            isReturn = false;
-                        }
-                    }
-                }
-                if(lastProject is Contractor lastContr)
-                {
-                    if(lastContr.Guid == SelectedContractor.Guid)
-                    {
-                        bool isSame = lastContr.Name== SelectedContractor.Name;
-                        if (isSame)
-                        {
-                            isReturn = true;
-                        }
-                        else
-                        {
-                            isReturn =false ;
-                        }
-                    }
-                }
-                if (isReturn)
-                {
-                    return;
-                }
-            }
-
-            _snapshotRedo.Push((CounterSnapshot, SelectedProject.Clone()));
-           // _snapshotRedo.Push((CounterSnapshot, SelectedContractor.Clone()));
-            CounterSnapshot += 1;
-            RedoCount += 1;
-            //}
+            
         }
         private void SnapshotCounter()
         {
@@ -464,14 +326,17 @@ namespace WPFsnapshot
                 Debug.WriteLine(existingTab.Content?.GetType().FullName);
                 // Tab already exists, just focus it
                 existingTab.Activate();
-
-                
+                var scrollViewer = existingTab.Content as ScrollViewer;
+                var userControl = scrollViewer?.Content as UserControl;
+                var vm = userControl?.DataContext as TabUCVM;
+                vm?.UpdateUndoRedoService();
 
                 return;
             }
             var tabUCviewModel = _tabFactory.Create(project);
             var tabUC = App.ServiceProvider.GetRequiredService<TabUC>();
             tabUC.DataContext = tabUCviewModel;
+            
             var scrollable = new ScrollViewer
             {
                 Content = tabUC,
@@ -504,17 +369,17 @@ namespace WPFsnapshot
             }
             else
             {
-                _currentTabVM = null;
+                _currentTabVM = null!;
             }
         }
         private void Undo_Click12(object sender, RoutedEventArgs e)
         {
-            _currentTabVM?.UndoRedo?.Undo();
+            _currentTabVM?.DoUndo();
         }
 
         private void Redo_Click12(object sender, RoutedEventArgs e)
         {
-            _currentTabVM?.UndoRedo?.Redo();
+            _currentTabVM?.DoRedo();
         }
 
         

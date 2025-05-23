@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,8 +11,8 @@ namespace WPFsnapshot.viewModel
 {
     public class TabUCVM
     {
-        public Project Project { get; set; }
-        public Project Clone { get; set; }
+        public Project Project { get; set; } = null!;
+        public Project Clone { get; set; } = null!;
 
         public Game Game { get; set; } = new Game
         {
@@ -19,8 +20,16 @@ namespace WPFsnapshot.viewModel
             Name = "Narnia",
             Description = "Adventure through a magical world."
         };
-        public Game GameClone { get; set; }
+        public Game GameClone { get; set; } = null!;
         public UndoRedoManager UndoRedo { get; } = new();
+
+        public UndoRedoService _undoRedoService;
+
+        public TabUCVM(UndoRedoService undoRedoService, Project p)
+        {
+            _undoRedoService = undoRedoService;
+            
+        }
 
         public void HandleClone()
         {
@@ -40,8 +49,30 @@ namespace WPFsnapshot.viewModel
                 val => Project.Name = val,
                 oldName,
                 newName);
+            if (oldName != newName)
+            {
+                UndoRedo.Execute(action);
+            }
+            
+            UpdateUndoRedoService();
+            
+        }
+        public void UpdateUndoRedoService()
+        {
+            _undoRedoService.UndoCount = UndoRedo.UndoCount;
+            _undoRedoService.RedoCount = UndoRedo.RedoCount;
+        }
 
-            UndoRedo.Execute(action);
+        public void DoUndo()
+        {
+            UndoRedo.Undo();
+            UpdateUndoRedoService();
+        }
+
+        public void DoRedo()
+        {
+            UndoRedo.Redo();
+            UpdateUndoRedoService();
         }
         public void RenameGame()
         {
