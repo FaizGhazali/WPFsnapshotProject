@@ -334,7 +334,7 @@ namespace WPFsnapshot
                 return;
             }
             var tabUCviewModel = _tabFactory.Create(project);
-            var tabUC = App.ServiceProvider.GetRequiredService<TabUC>();
+            var tabUC = _tabFactory.Create();
             tabUC.DataContext = tabUCviewModel;
             
             var scrollable = new ScrollViewer

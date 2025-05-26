@@ -54,8 +54,7 @@ namespace WPFsnapshot
             services.AddSingleton<UndoRedoManager>();
             services.AddSingleton<UndoRedoService>();
 
-            //model
-            services.AddTransient<Project>();
+            
 
         }
         public App()

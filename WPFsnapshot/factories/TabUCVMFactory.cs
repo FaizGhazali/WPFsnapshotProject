@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WPFsnapshot.model;
+using WPFsnapshot.view;
 using WPFsnapshot.viewModel;
 
 namespace WPFsnapshot.factories
@@ -23,6 +24,10 @@ namespace WPFsnapshot.factories
             var vm = _serviceProvider.GetRequiredService<TabUCVM>();
             vm.Project = project;
             return vm;
+        }
+        public TabUC Create()
+        {
+            return _serviceProvider.GetRequiredService<TabUC>();
         }
     }
 }

@@ -25,7 +25,7 @@ namespace WPFsnapshot.viewModel
 
         public UndoRedoService _undoRedoService;
 
-        public TabUCVM(UndoRedoService undoRedoService, Project p)
+        public TabUCVM(UndoRedoService undoRedoService)
         {
             _undoRedoService = undoRedoService;
             
